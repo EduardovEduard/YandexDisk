@@ -48,9 +48,11 @@ function extractTokenFromUrl(url) {
 }
 
 function takeScreenshot() {
-    chrome.tabs.captureVisibleTab(null, function(image) {
-        console.log(image);
 
+    DiskApi.token = localStorage.accessToken;
+    DiskApi.make_directory('/MADE');
+
+    chrome.tabs.captureVisibleTab(null, function(image) {
         var screenshotUrl = image;
         var viewTabUrl = chrome.extension.getURL('screenshot.html?id=' + screenshotTabId++);
 
@@ -67,8 +69,7 @@ function takeScreenshot() {
                 for (var i = 0; i < views.length; i++) {
                     var view = views[i];
                     if (view.location.href == viewTabUrl) {
-                        console.log("Background: setScreenshotUrl " + screenshotUrl);
-                        view.setScreenshotUrl(screenshotUrl);
+                        view.setScreenshotUrl(screenshotUrl, DiskApi);
                         break;
                     }
                 }

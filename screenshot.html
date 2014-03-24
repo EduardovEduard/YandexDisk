@@ -3,7 +3,10 @@
 <head>
     <title>Screenshot</title>
     <script src="screenshot.js"></script>
-</head>
+    <script src="background.js"></script>
+    <script src="DiskAPI.js"></script>
+    <script src="lib/CryptoJS/rollups/sha256.js"></script>
+    <script src="lib/CryptoJS/rollups/md5.js"></script></head>
 <body>
     Image goes here:
     <p>
@@ -11,5 +14,7 @@
         </canvas>
     </p>
     End of image
+    <input id="submit" type="button" value="Send to my YandexDisk!">
+    </input>
 </body>
 </html>
