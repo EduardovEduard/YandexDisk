@@ -7,6 +7,15 @@ XMLHttpRequest.prototype.sendAsBinary = function(datastr) {
     this.send(ui8a);
 }
 
+function filter(path)
+{
+    path = path.replace(/https?:\/\//g, '');
+    path = path.replace(/\./g, '_');
+    path = path.replace(/\//g, '_');
+    return path;
+}
+
+
 var DiskApi = {
     host: 'https://webdav.yandex.ru',
 
@@ -44,6 +53,7 @@ var DiskApi = {
     },
 
     put: function(path, image) {
+        path = filter(path);
         console.log("API: PUT " + path);
         var replaceRegexp = /^data:image\/(jpeg|png);base64,/;
         var imageSource = image.replace(replaceRegexp, "");
