@@ -1,21 +1,24 @@
 var appId = '35fc29c1180e4829a729c721da417b72';
 
-var successfulLoginUrl = 'https://oauth.yandex.ru/verification_code*';
+var successfulLoginUrl = 'https://oauth.yandex.ru/verification_code';
 var yandexLoginUrl = 'https://oauth.yandex.ru/authorize?response_type=token&client_id=' + appId;
 
 var screenshotTabId = 100;
 
 function onTabUpdate() {
     if (!localStorage.accessToken) {
-        chrome.tabs.query({url : successfulLoginUrl}, function(tabs) {
-            if (0 < tabs.length) {
-                var tab = tabs[0];
-                var token = extractTokenFromUrl(tab.url);
-                localStorage.accessToken = token;
-                chrome.tabs.onUpdated.removeListener(onTabUpdate);
-                console.log('Token: ' + token);
-                chrome.tabs.remove(tab.id);
-                console.log(tabs.length);
+        chrome.tabs.query({active: true}, function(tabs) {
+            for (var i = 0; i < tabs.length; ++i) {
+                if (tabs[i].url.indexOf(successfulLoginUrl) == 0) {
+                    var tab = tabs[i];
+                    var token = extractTokenFromUrl(tab.url);
+                    localStorage.accessToken = token;
+                    chrome.tabs.onUpdated.removeListener(onTabUpdate);
+                    chrome.tabs.remove(tab.id);
+
+                    console.log('Token: ' + token);
+                    console.log(tabs.length);
+                }
             }
         });
     }
