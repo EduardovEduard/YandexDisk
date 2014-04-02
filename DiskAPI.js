@@ -1,8 +1,20 @@
+XMLHttpRequest.prototype.sendAsBinary = function(datastr) {
+    function byteValue(x) {
+        return x.charCodeAt(0) & 0xff;
+    }
+    var ords = Array.prototype.map.call(datastr, byteValue);
+    var ui8a = new Uint8Array(ords);
+    this.send(ui8a);
+}
+
 var DiskApi = {
     host: 'https://webdav.yandex.ru',
 
     make_directory: function(path) {
         console.log('Path: ' + path);
+
+        this.directory = path;
+
         var request = new XMLHttpRequest();
 
         request.open('MKCOL', this.host + path);
@@ -33,12 +45,12 @@ var DiskApi = {
         var imageSource = image.replace(replaceRegexp, "");
         imageSource = atob(imageSource);
 
-        console.log(imageSource);
-
         var hashes = this.getHashes(imageSource);
-
         var request = new XMLHttpRequest();
-        request.open('PUT', this.host + path);
+
+        var slash = (this.directory.slice(-1) == '/') ? '' : '/';
+        request.open('PUT', this.host + this.directory + slash + path);
+
         request.setRequestHeader('Accept', '*/*');
         request.setRequestHeader('Authorization', 'OAuth ' + this.token);
 
@@ -53,6 +65,6 @@ var DiskApi = {
             console.log(this.responseText);
         }
 
-        request.send(imageSource);
+        request.sendAsBinary(imageSource);
     }
 }

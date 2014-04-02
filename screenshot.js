@@ -3,7 +3,7 @@ function submitToDisk(api) {
     var canvas = document.getElementById('screenshot_canvas');
     var image = canvas.toDataURL();
     console.log(image);
-    api.put('/MADE/image.png', image);
+    api.put('image.png', image);
 }
 
 function setScreenshotUrl(url, api) {

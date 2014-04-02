@@ -50,7 +50,7 @@ function extractTokenFromUrl(url) {
 function takeScreenshot() {
 
     DiskApi.token = localStorage.accessToken;
-    DiskApi.make_directory('/MADE');
+    DiskApi.make_directory('/ChromePlugin');
 
     chrome.tabs.captureVisibleTab(null, function(image) {
         var screenshotUrl = image;
