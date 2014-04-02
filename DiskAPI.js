@@ -12,24 +12,28 @@ var DiskApi = {
 
     make_directory: function(path) {
         console.log('Path: ' + path);
+        this.isPathExists(path, function(result) {
+            if (result == false)
+            {
+                this.directory = path;
 
-        this.directory = path;
+                var request = new XMLHttpRequest();
 
-        var request = new XMLHttpRequest();
+                request.open('MKCOL', DiskApi.host + path);
 
-        request.open('MKCOL', this.host + path);
+                request.setRequestHeader('Accept', '*/*');
+                request.setRequestHeader('Authorization', 'OAuth ' + DiskApi.token);
 
-        request.setRequestHeader('Accept', '*/*');
-        request.setRequestHeader('Authorization', 'OAuth ' + this.token);
+                request.onreadystatechange = function (state) {
+                    if (state == XMLHttpRequest.DONE) {
+                        console.log("Request done!");
+                        console.log(this.responseText);
+                    }
+                }
 
-        request.onreadystatechange = function (state) {
-            if (state == XMLHttpRequest.DONE) {
-                console.log("Request done!");
-                console.log(this.responseText);
+                request.send(null);
             }
-        }
-
-        request.send(null);
+        });
     },
 
     getHashes: function(image) {
@@ -40,7 +44,7 @@ var DiskApi = {
     },
 
     put: function(path, image) {
-        console.log("API: PUT");
+        console.log("API: PUT " + path);
         var replaceRegexp = /^data:image\/(jpeg|png);base64,/;
         var imageSource = image.replace(replaceRegexp, "");
         imageSource = atob(imageSource);
@@ -48,8 +52,8 @@ var DiskApi = {
         var hashes = this.getHashes(imageSource);
         var request = new XMLHttpRequest();
 
-        var slash = (this.directory.slice(-1) == '/') ? '' : '/';
-        request.open('PUT', this.host + this.directory + slash + path);
+        var slash = (localStorage.directory.slice(-1) == '/') ? '' : '/';
+        request.open('PUT', this.host + localStorage.directory + slash + path);
 
         request.setRequestHeader('Accept', '*/*');
         request.setRequestHeader('Authorization', 'OAuth ' + this.token);
@@ -61,10 +65,33 @@ var DiskApi = {
         }
 
         request.onload = function() {
-            console.log("Request done!");
+            console.log("Put finished!");
             console.log(this.responseText);
         }
 
         request.sendAsBinary(imageSource);
+    },
+
+    isPathExists: function(path, callback) {
+        localStorage.directory = path;
+        var request = new XMLHttpRequest();
+
+        console.log("API: PROPFIND " + path);
+        request.open('PROPFIND', this.host + path);
+        request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        request.setRequestHeader('Authorization', 'OAuth ' + this.token);
+
+        request.setRequestHeader('Depth', '1');
+        request.onload = function() {
+            if (this.status == 404)
+            {
+                callback(false);
+            }
+            else {
+                callback(true);
+            }
+        }
+
+        request.send(null);
     }
 }

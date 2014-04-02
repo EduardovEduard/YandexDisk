@@ -55,29 +55,34 @@ function takeScreenshot() {
     DiskApi.token = localStorage.accessToken;
     DiskApi.make_directory('/ChromePlugin');
 
-    chrome.tabs.captureVisibleTab(null, function(image) {
-        var screenshotUrl = image;
-        var viewTabUrl = chrome.extension.getURL('screenshot.html?id=' + screenshotTabId++);
+    chrome.tabs.getSelected(null, function(tab) {
+        var title = tab.title;
+        chrome.tabs.captureVisibleTab(null, function(image) {
+            var screenshotUrl = image;
+            var viewTabUrl = chrome.extension.getURL('screenshot.html?id=' + screenshotTabId++);
 
-        chrome.tabs.create({url : viewTabUrl}, function(tab) {
-            var targetId = tab.id;
+            chrome.tabs.create({url : viewTabUrl}, function(tab) {
+                var targetId = tab.id;
 
-            var addSnapshotImageToTab = function(tabId, changedProps) {
-                if (tabId != targetId || changedProps.status != 'complete')
-                    return;
+                var addSnapshotImageToTab = function(tabId, changedProps) {
+                    if (tabId != targetId || changedProps.status != 'complete')
+                        return;
 
-                chrome.tabs.onUpdated.removeListener(addSnapshotImageToTab);
+                    console.log("Title: " + title);
 
-                var views = chrome.extension.getViews();
-                for (var i = 0; i < views.length; i++) {
-                    var view = views[i];
-                    if (view.location.href == viewTabUrl) {
-                        view.setScreenshotUrl(screenshotUrl, DiskApi);
-                        break;
+                    chrome.tabs.onUpdated.removeListener(addSnapshotImageToTab);
+
+                    var views = chrome.extension.getViews();
+                    for (var i = 0; i < views.length; i++) {
+                        var view = views[i];
+                        if (view.location.href == viewTabUrl) {
+                            view.setScreenshotUrl(screenshotUrl, title, DiskApi);
+                            break;
+                        }
                     }
-                }
-            };
-            chrome.tabs.onUpdated.addListener(addSnapshotImageToTab);
+                };
+                chrome.tabs.onUpdated.addListener(addSnapshotImageToTab);
+            });
         });
     });
 }

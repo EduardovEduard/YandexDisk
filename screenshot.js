@@ -1,13 +1,13 @@
-function submitToDisk(api) {
+function submitToDisk(api, title) {
     console.log('submit');
     var canvas = document.getElementById('screenshot_canvas');
     var image = canvas.toDataURL();
-    console.log(image);
-    api.put('image.png', image);
+    console.log(title);
+    api.put(title, image);
 }
 
-function setScreenshotUrl(url, api) {
-    console.log("setScreenshotUrl: " + url);
+function setScreenshotUrl(imageUrl, title, api) {
+    console.log("setScreenshotUrl: " + imageUrl);
     var image = new Image();
     var canvas = document.getElementById('screenshot_canvas');
     var context = canvas.getContext('2d');
@@ -18,11 +18,9 @@ function setScreenshotUrl(url, api) {
         context.drawImage(image, 0, 0);
     });
 
-    image.src = url;
+    image.src = imageUrl;
 
-    var submitWithApi = function() {
-        submitToDisk(api);
+    document.getElementById('submit').onclick = function () {
+        submitToDisk(api, title);
     };
-
-    document.getElementById('submit').onclick = submitWithApi;
 }
