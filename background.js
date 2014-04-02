@@ -3,7 +3,7 @@ var appId = '35fc29c1180e4829a729c721da417b72';
 var successfulLoginUrl = 'https://oauth.yandex.ru/verification_code';
 var yandexLoginUrl = 'https://oauth.yandex.ru/authorize?response_type=token&client_id=' + appId;
 
-var screenshotTabId = 100;
+var tabId = 0;
 
 function onTabUpdate() {
     if (!localStorage.accessToken) {
@@ -27,7 +27,7 @@ function onTabUpdate() {
 window.onload = function () {
     chrome.tabs.onUpdated.addListener(onTabUpdate);
 
-    chrome.browserAction.onClicked.addListener(function() {
+    var onClicked = function() {
 
         if (!localStorage.accessToken) {
             console.log("No access token!");
@@ -41,7 +41,9 @@ window.onload = function () {
             console.log(localStorage.accessToken);
             takeScreenshot();
         }
-    });
+    };
+
+    chrome.browserAction.onClicked.addListener(onClicked);
 };
 
 function extractTokenFromUrl(url) {
@@ -59,20 +61,21 @@ function takeScreenshot() {
         var title = tab.title;
         chrome.tabs.captureVisibleTab(null, function(image) {
             var screenshotUrl = image;
-            var viewTabUrl = chrome.extension.getURL('screenshot.html?id=' + screenshotTabId++);
+            var viewTabUrl = chrome.extension.getURL('screenshot.html?id=' + tabId++);
 
             chrome.tabs.create({url : viewTabUrl}, function(tab) {
                 var targetId = tab.id;
 
                 var addSnapshotImageToTab = function(tabId, changedProps) {
-                    if (tabId != targetId || changedProps.status != 'complete')
+                    if (tabId != targetId || changedProps.status != 'complete') {
                         return;
-
+                    }
+                    console.log("CREATE ON_SCREEN!!!");
                     console.log("Title: " + title);
-
                     chrome.tabs.onUpdated.removeListener(addSnapshotImageToTab);
-
                     var views = chrome.extension.getViews();
+
+
                     for (var i = 0; i < views.length; i++) {
                         var view = views[i];
                         if (view.location.href == viewTabUrl) {

@@ -83,8 +83,7 @@ var DiskApi = {
 
         request.setRequestHeader('Depth', '1');
         request.onload = function() {
-            if (this.status == 404)
-            {
+            if (this.status == 404) {
                 callback(false);
             }
             else {
