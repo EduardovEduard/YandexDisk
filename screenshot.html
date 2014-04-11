@@ -1,20 +1,43 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Screenshot</title>
-    <script src="screenshot.js"></script>
-    <script src="DiskAPI.js"></script>
-    <script src="lib/CryptoJS/rollups/sha256.js"></script>
-    <script src="lib/CryptoJS/rollups/md5.js"></script>
-</head>
-<body>
-    Image goes here:
-    <p>
-        <canvas id="screenshot_canvas" width="820" height="640">
-        </canvas>
-    </p>
-    End of image
-    <input id="submit" type="button" value="Send to my YandexDisk!">
-    </input>
-</body>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <title>Screenshot</title>
+	    <script src="screenshot.js"></script>
+	    <script src="DiskAPI.js"></script>
+	    <script src="lib/CryptoJS/rollups/sha256.js"></script>
+        <script src="lib/CryptoJS/rollups/md5.js"></script>
+        <script src="lib/jquery-1.11.0.js"></script>
+        <script src="edit.js"></script>
+        <link rel="stylesheet" href="css/style.css" />
+    </head>
+    <body>
+        <div id = "main">
+            <div id = "header">
+                <ul class = "panel">
+                    <li><a id = "crop">Crop</a></li>
+                    <li><a id = "rectangle">Rect</a></li>
+                    <li><a id = "line">Line</a></li>
+                    <li><a id = "circle">Circle</a></li>
+                        <ul>
+                            <li style = "background-color: black"></li>
+                            <li style = "background-color: red"></li>
+                            <li style = "background-color: yellow"></li>
+                            <li style = "background-color: blue"></li>
+                            <li style = "background-color: yellow"></li>
+                            <li style = "background-color: green"></li>
+                            <li style = "background-color: pink"></li>
+                            <li style = "background-color: white"></li>
+                            <li style = "background-color: purple"></li>
+                            <li style = "background-color: orange"></li>
+                            <li style = "background-color: green"></li>
+                            <li style = "background-color: brown"></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+            <canvas id = "screenshot_canvas"></canvas>
+            <canvas id = "drawing_canvas"></canvas>
+            <input id="submit" type="button" style="position: relative" value="Send to my YandexDisk!">
+        </div>
+    </body>
 </html>

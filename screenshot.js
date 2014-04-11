@@ -10,11 +10,16 @@ function setScreenshotUrl(imageUrl, title, api) {
     console.log("setScreenshotUrl: " + imageUrl);
     var image = new Image();
     var canvas = document.getElementById('screenshot_canvas');
+    var drawingCanvas = document.getElementById('drawing_canvas');
     var context = canvas.getContext('2d');
 
     image.addEventListener('load', function () {
         canvas.setAttribute('width', image.width);
         canvas.setAttribute('height', image.height);
+
+        drawingCanvas.setAttribute('width', image.width);
+        drawingCanvas.setAttribute('height', image.height);
+
         context.drawImage(image, 0, 0);
     });
 
