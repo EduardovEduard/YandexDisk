@@ -14,10 +14,10 @@
         <div id = "main">
             <div id = "header">
                 <ul class = "panel">
-                    <li><a id = "crop">Crop</a></li>
-                    <li><a id = "rectangle">Rect</a></li>
-                    <li><a id = "line">Line</a></li>
-                    <li><a id = "circle">Circle</a></li>
+                    <li><a id = "crop" class = "draw_method">Crop</a></li>
+                    <li><a id = "rectangle" class = "draw_method">Rect</a></li>
+                    <li><a id = "line" class = "draw_method">Line</a></li>
+                    <li><a id = "ellipse" class = "draw_method">Circle</a></li>
                         <ul>
                             <li style = "background-color: black"></li>
                             <li style = "background-color: red"></li>
@@ -35,8 +35,10 @@
                     </li>
                 </ul>
             </div>
-            <canvas id = "screenshot_canvas"></canvas>
-            <canvas id = "drawing_canvas"></canvas>
+            <div id = "drawing_area">
+                <canvas id = "drawing_canvas"></canvas>
+                <canvas id = "screenshot_canvas"></canvas>
+            </div>
             <input id="submit" type="button" style="position: relative" value="Send to my YandexDisk!">
         </div>
     </body>
