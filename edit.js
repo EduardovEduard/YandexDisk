@@ -43,12 +43,49 @@ var CanvasManager = {
     onMouseUp: function() {
         if (this.shapeDrawer != null) {
             this.shapeDrawer.stop();
+            this.save();
             this.mainContext.drawImage(this.drawingCanvas, 0, 0);
+        }
+    },
+
+    historyStack: [],
+    redoStack: [],
+
+    save: function() {
+        this.historyStack.push(this.imageCanvas.toDataURL());
+    },
+
+    undo: function() {
+        if (this.historyStack.length != 0) {
+            this.redoStack.push(this.imageCanvas.toDataURL());
+
+            var state = this.historyStack.pop();
+
+            var image = new Image();
+            image.addEventListener('load', function() {
+                CanvasManager.mainContext.drawImage(image, 0, 0);
+            });
+
+            image.src = state;
+        }
+    },
+
+    redo: function() {
+        if (this.redoStack.length != 0) {
+            this.historyStack.push(this.imageCanvas.toDataURL());
+            var state = this.redoStack.pop();
+
+            var image = new Image();
+            image.addEventListener('load', function() {
+                CanvasManager.mainContext.drawImage(image, 0, 0);
+            });
+
+            image.src = state;
         }
     }
 };
 
-function AbstractDrawer () {
+function AbstractDrawer() {
     this.isDrawing = false;
 }
 
@@ -117,6 +154,16 @@ window.onload = function() {
     $('.draw_method').click(function() {
         console.log(this.id);
         CanvasManager.shapeDrawer = getDrawer(this.id);
+    });
+
+    $('#undo').click(function() {
+        console.log("Undo");
+        CanvasManager.undo();
+    });
+
+    $('#redo').click(function() {
+       console.log("Redo");
+        CanvasManager.redo();
     });
 
     CanvasManager.initialize();
