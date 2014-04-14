@@ -79,3 +79,7 @@ ol, ul, li {
 #drawing_canvas {
     position: absolute;
 }
+
+.unselectable{
+    -webkit-user-select: none;
+}
