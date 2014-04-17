@@ -1,50 +1,87 @@
+Array.prototype.top = function() {
+    return this[this.length - 1];
+};
+
 var CanvasManager = {
 
     initialize: function() {
         this.drawingCanvas = $('#drawing_canvas')[0];
-        this.imageCanvas = $('#screenshot_canvas')[0];
+        this.mainCanvas = $('#screenshot_canvas')[0];
 
-        this.drawContext = this.drawingCanvas.getContext('2d');
-        this.mainContext = this.imageCanvas.getContext('2d');
+        this.drawingContext = this.drawingCanvas.getContext('2d');
+        this.mainContext = this.mainCanvas.getContext('2d');
 
         this.offsetLeft= this.drawingCanvas.offsetLeft;
         this.offsetTop = this.drawingCanvas.offsetTop;
 
-        this.drawingCanvas.addEventListener('mousedown', function(e) {CanvasManager.onMouseDown(e);});
-        this.drawingCanvas.addEventListener('mousemove', function(e) {CanvasManager.onMove(e);});
-        this.drawingCanvas.addEventListener('mouseup', function(e) {CanvasManager.onMouseUp(e);});
+        $('#drawing_canvas').on('mousedown', function(e) {CanvasManager.onMouseDown(e);});
+        $('#drawing_canvas').on('mousemove', function(e) {CanvasManager.onMove(e);});
+        $('#drawing_canvas').on('mouseup', function(e) {CanvasManager.onMouseUp(e);});
     },
 
-    clickX: 0,
-    clickY: 0,
+    getCanvasPos: function(canvas) {
+        var _x = canvas.offsetLeft;
+        var _y = canvas.offsetTop;
+
+        while(canvas == canvas.offsetParent) {
+            _x += canvas.offsetLeft - canvas.scrollLeft;
+            _y += canvas.offsetTop - canvas.scrollTop;
+        }
+
+        return {
+            left : _x,
+            top : _y
+        }
+    },
+
+    mousePos: function(event) {
+        var mouseX = event.clientX - this.getCanvasPos(event.target).left + window.pageXOffset;
+        var mouseY = event.clientY - this.getCanvasPos(event.target).top + window.pageYOffset;
+        return {
+            x : mouseX,
+            y : mouseY
+        };
+    },
 
     onMouseDown: function(event) {
         if (this.shapeDrawer != null) {
-            var x = event.clientX, y = event.clientY;
 
-            this.clickX = x - this.offsetLeft;
-            this.clickY = y - this.offsetTop;
+            var point = this.mousePos(event);
 
-            this.shapeDrawer.start();
+            this.prevPoint = point;
 
-            this.drawContext.lineWidth = 4;
+            this.shapeDrawer.start(this.drawingContext, point);
+
+            this.drawingContext.lineWidth = 4;
         }
     },
 
     onMove: function(event) {
-        var x = event.clientX, y = event.clientY;
+        var point = this.mousePos(event);
 
-        if (this.shapeDrawer != null) {
-            this.drawContext.clearRect(0, 0, this.drawingCanvas.width, this.drawingCanvas.height);
-            this.shapeDrawer.draw(this.drawContext, this.clickX, this.clickY, x - this.offsetLeft, y - this.offsetTop);
+        if (this.shapeDrawer != null && this.shapeDrawer.isDrawing) {
+            if (this.shapeDrawer.needsToClear) {
+                this.drawingContext.clearRect(0, 0, this.drawingCanvas.width, this.drawingCanvas.height);
+            }
+
+            this.shapeDrawer.draw(this.drawingContext, this.prevPoint.x, this.prevPoint.y, point.x, point.y);
         }
+        this.prevPoint = point;
     },
 
-    onMouseUp: function() {
+    onMouseUp: function(event) {
         if (this.shapeDrawer != null) {
-            this.shapeDrawer.stop();
-            this.save();
+            this.shapeDrawer.stop(this.drawingContext, this.prevPoint);
+
+            if (this.historyStack.length == 0) {
+                this.save();
+            }
+
             this.mainContext.drawImage(this.drawingCanvas, 0, 0);
+            this.save();
+
+            this.drawingContext.clearRect(0, 0, this.drawingCanvas.width, this.drawingCanvas.height);
+            this.redoStack = [];
         }
     },
 
@@ -52,48 +89,78 @@ var CanvasManager = {
     redoStack: [],
 
     save: function() {
-        this.historyStack.push(this.imageCanvas.toDataURL());
+        this.historyStack.push({
+            data: this.mainCanvas.toDataURL(),
+            width: this.mainCanvas.width,
+            height: this.mainCanvas.height
+        });
     },
 
     undo: function() {
-        if (this.historyStack.length != 0) {
-            this.redoStack.push(this.imageCanvas.toDataURL());
+        if (this.historyStack.length > 1) {
+            var canvas = CanvasManager.mainCanvas;
+            var context = CanvasManager.mainContext;
 
             var state = this.historyStack.pop();
+            this.redoStack.push(state);
+
+            state = this.historyStack.top();
 
             var image = new Image();
             image.addEventListener('load', function() {
-                CanvasManager.mainContext.drawImage(image, 0, 0);
+                if (state.height != canvas.height || state.width != canvas.width) {
+                    resize(CanvasManager.drawingCanvas, state.width, state.height);
+                    resize(CanvasManager.mainCanvas, state.width, state.height);
+                }
+                context.clearRect(0, 0, canvas.width, canvas.height);
+                context.drawImage(image, 0, 0);
             });
 
-            image.src = state;
+            image.src = state.data;
         }
     },
 
     redo: function() {
-        if (this.redoStack.length != 0) {
-            this.historyStack.push(this.imageCanvas.toDataURL());
+        if (this.redoStack.length > 0) {
+            var canvas = CanvasManager.mainCanvas;
+            var context = CanvasManager.mainContext;
+
             var state = this.redoStack.pop();
+            this.historyStack.push(state);
 
             var image = new Image();
             image.addEventListener('load', function() {
-                CanvasManager.mainContext.drawImage(image, 0, 0);
+                if (state.height != canvas.height || state.width != canvas.width) {
+                    resize(CanvasManager.drawingCanvas, state.width, state.height);
+                    resize(CanvasManager.mainCanvas, state.width, state.height);
+                }
+                context.clearRect(0, 0, canvas.width, canvas.height);
+                context.drawImage(image, 0, 0);
             });
 
-            image.src = state;
+            image.src = state.data;
         }
     }
 };
 
-function AbstractDrawer() {
-    this.isDrawing = false;
+function resize(canvas, width, height) {
+    canvas.setAttribute('width', width);
+    canvas.setAttribute('height', height);
 }
 
-AbstractDrawer.prototype.start = function() {
+
+function AbstractDrawer() {
+    this.isDrawing = false;
+    this.needsToClear = true;
+}
+
+AbstractDrawer.prototype.start = function(ctx, point) {
     this.isDrawing = true;
+    this.startPoint = point;
 };
 
-AbstractDrawer.prototype.stop = function() {
+AbstractDrawer.prototype.stop = function(ctx, point) {
+    console.log("Stop");
     this.isDrawing = false;
 };
 
@@ -106,7 +173,7 @@ RectangleDrawer.prototype = Object.create(AbstractDrawer.prototype);
 
 RectangleDrawer.prototype.draw = function(ctx, x1, y1, x2, y2) {
     if (this.isDrawing) {
-        ctx.strokeRect(x1, y1, x2 - x1, y2 - y1);
+        ctx.strokeRect(this.startPoint.x, this.startPoint.y,  x2 - this.startPoint.x, y2 - this.startPoint.y);
     }
 };
 
@@ -119,7 +186,7 @@ CircleDrawer.prototype = Object.create(AbstractDrawer.prototype);
 
 CircleDrawer.prototype.draw = function(ctx, x1, y1, x2, y2) {
     if (this.isDrawing) {
-      ellipse(ctx, x1, y1, x2 - x1, y2 - y1);
+      ellipse(ctx, this.startPoint.x, this.startPoint.y, x2 - this.startPoint.x, y2 - this.startPoint.y);
   }
 };
 
@@ -132,12 +199,73 @@ LineDrawer.prototype = Object.create(AbstractDrawer.prototype);
 LineDrawer.prototype.draw = function(ctx, x1, y1, x2, y2) {
     if (this.isDrawing) {
         ctx.beginPath();
-        ctx.moveTo(x1, y1);
+        ctx.moveTo(this.startPoint.x, this.startPoint.y);
         ctx.lineTo(x2, y2);
         ctx.closePath();
         ctx.stroke();
     }
 };
+
+function CropDrawer() {
+    AbstractDrawer.call(this);
+}
+
+CropDrawer.prototype = Object.create(AbstractDrawer.prototype);
+
+CropDrawer.prototype.start = function(ctx, point) {
+    AbstractDrawer.prototype.start.call(this, ctx, point);
+
+    ctx.fillStyle = 'rgba(0,0,0,.2)';
+    ctx.fillRect(0, 0, CanvasManager.drawingCanvas.width, CanvasManager.drawingCanvas.height);
+    ctx.fill();
+}
+
+CropDrawer.prototype.stop = function(ctx, point) {
+    if (this.isDrawing && this.lastRect) {
+        var temp = document.createElement('canvas');
+        var tempContext = temp.getContext('2d');
+
+        resize(temp, this.lastRect.width, this.lastRect.height);
+
+        tempContext.drawImage(CanvasManager.mainCanvas, this.lastRect.x, this.lastRect.y,
+            this.lastRect.width, this.lastRect.height, 0, 0, this.lastRect.width, this.lastRect.height);
+
+        resize(CanvasManager.mainCanvas, this.lastRect.width, this.lastRect.height);
+
+        CanvasManager.mainContext.drawImage(temp, 0, 0,
+            temp.width, temp.height, 0, 0, temp.width, temp.height);
+
+        resize(CanvasManager.drawingCanvas, temp.width, temp.height);
+        this.isDrawing = false;
+    }
+}
+
+CropDrawer.prototype.draw = function(ctx, x1, y1, x2, y2) {
+    if (this.isDrawing) {
+        ctx.strokeRect(this.startPoint.x, this.startPoint.y, x2 - this.startPoint.x, y2 - this.startPoint.y);
+        this.lastRect = {
+            x: this.startPoint.x,
+            y: this.startPoint.y,
+            width: x2 - this.startPoint.x, 
+            height: y2 - this.startPoint.y
+        };
+    }
+};
+
+function SimpleDrawer() {
+    AbstractDrawer.call(this);
+    this.needsToClear = false;
+}
+
+SimpleDrawer.prototype = Object.create(AbstractDrawer.prototype);
+
+SimpleDrawer.prototype.draw = function(ctx, x1, y1, x2, y2) {
+    if (this.isDrawing) {
+        ctx.moveTo(x1,y1);
+        ctx.lineTo(x2,y2);
+        ctx.stroke();
+    }
+}
 
 window.onload = function() {
 
@@ -146,6 +274,8 @@ window.onload = function() {
             case 'rectangle': return new RectangleDrawer();
             case 'ellipse': return new CircleDrawer();
             case 'line': return new LineDrawer();
+            case 'draw': return new SimpleDrawer();
+            case 'crop': return new CropDrawer();
             default: return new RectangleDrawer();
         }
         return null;
@@ -157,12 +287,10 @@ window.onload = function() {
     });
 
     $('#undo').click(function() {
-        console.log("Undo");
         CanvasManager.undo();
     });
 
     $('#redo').click(function() {
-       console.log("Redo");
         CanvasManager.redo();
     });
 
