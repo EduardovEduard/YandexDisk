@@ -55,6 +55,8 @@ var DiskApi = {
     put: function(path, image) {
         path = filter(path);
         console.log("API: PUT " + path);
+        var dateString = new Date().toString().split(' ').join('_').slice(0, -15);
+
         var replaceRegexp = /^data:image\/(jpeg|png);base64,/;
         var imageSource = image.replace(replaceRegexp, "");
         imageSource = atob(imageSource);
@@ -63,7 +65,7 @@ var DiskApi = {
         var request = new XMLHttpRequest();
 
         var slash = (localStorage.directory.slice(-1) == '/') ? '' : '/';
-        request.open('PUT', this.host + localStorage.directory + slash + path);
+        request.open('PUT', this.host + localStorage.directory + slash + path + slash + dateString);
 
         request.setRequestHeader('Accept', '*/*');
         request.setRequestHeader('Authorization', 'OAuth ' + this.token);
@@ -92,6 +94,7 @@ var DiskApi = {
         request.setRequestHeader('Authorization', 'OAuth ' + this.token);
 
         request.setRequestHeader('Depth', '1');
+
         request.onload = function() {
             if (this.status == 404) {
                 callback(false);
