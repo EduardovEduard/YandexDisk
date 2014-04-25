@@ -83,3 +83,19 @@ ol, ul, li {
 .unselectable{
     -webkit-user-select: none;
 }
+
+.textinput {
+    position: absolute;
+    border: none;
+    outline: none;
+    background: rgba(255,255,255,0);
+    font: bold 14px/18px Arial, Helvetica, sans-serif;
+    text-align:left;
+}
+
+#string_width_div {
+    height: auto;
+    width: auto;
+    position: absolute;
+    visibility: hidden;
+}

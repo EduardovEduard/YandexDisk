@@ -2,6 +2,51 @@ Array.prototype.top = function() {
     return this[this.length - 1];
 };
 
+function spawnTextInput(x, y) {
+    if (!this.textInputId)
+        this.textInputId = 0;
+
+    var textInputId = 'textInput' + this.textInputId++;
+    var input = $('<input/>', {
+        "class": 'textinput',
+        id: textInputId
+    }).appendTo("#main");
+
+    input.css({
+        top: (y - input.height()) + 'px',
+        left: x + 'px'
+    });
+
+    input.focus();
+    input.on('keyup',function(event) {
+        switch (event.keyCode) {
+            case 8 : //fallthrough
+            case 46: break;
+            case 13: var rect = input[0].getBoundingClientRect();
+                     spawnTextInput(rect.left, rect.bottom + rect.height);
+        }
+    });
+
+    input.on('input', function() {
+        var lastChar = $(this).val().slice(-1);
+
+        $('#string_width_div').html(lastChar);
+        var charWidth = $('#string_width_div').width();
+        console.log(CanvasManager.mainCanvas.width + ' ' + $(this).width() + ' ' + $(this).position().left + ' ' + charWidth);
+
+        if ($(this).position().left + $(this).width() + charWidth < CanvasManager.mainCanvas.width)
+        {
+            $(this).width($(this).width() + charWidth);
+        }
+        else
+        {
+          $(this).prop('readonly', 'readonly');
+        }
+    });
+
+    return textInputId;
+}
+
 var CanvasManager = {
 
     initialize: function() {
@@ -14,9 +59,19 @@ var CanvasManager = {
         this.offsetLeft= this.drawingCanvas.offsetLeft;
         this.offsetTop = this.drawingCanvas.offsetTop;
 
-        $('#drawing_canvas').on('mousedown', function(e) {CanvasManager.onMouseDown(e);});
-        $('#drawing_canvas').on('mousemove', function(e) {CanvasManager.onMove(e);});
-        $('#drawing_canvas').on('mouseup', function(e) {CanvasManager.onMouseUp(e);});
+        this.setDrawingHandlers();
+    },
+
+    setDrawingHandlers: function () {
+        $('#drawing_canvas').off();
+        $('#drawing_canvas').on('mousedown', function(e) {CanvasManager.onMouseDrawDown(e);});
+        $('#drawing_canvas').on('mousemove', function(e) {CanvasManager.onMouseDrawMove(e);});
+        $('#drawing_canvas').on('mouseup',   function(e) {CanvasManager.onMouseDrawUp(e);});
+    },
+
+    setTextInputHandlers: function() {
+        $('#drawing_canvas').off();
+        $('#drawing_canvas').on('click', function(e) {CanvasManager.onMouseTextClickBefore(e);});
     },
 
     getCanvasPos: function(canvas) {
@@ -43,7 +98,7 @@ var CanvasManager = {
         };
     },
 
-    onMouseDown: function(event) {
+    onMouseDrawDown: function(event) {
         if (this.shapeDrawer != null) {
 
             var point = this.mousePos(event);
@@ -56,7 +111,7 @@ var CanvasManager = {
         }
     },
 
-    onMove: function(event) {
+    onMouseDrawMove: function(event) {
         var point = this.mousePos(event);
 
         if (this.shapeDrawer != null && this.shapeDrawer.isDrawing) {
@@ -69,7 +124,7 @@ var CanvasManager = {
         this.prevPoint = point;
     },
 
-    onMouseUp: function(event) {
+    onMouseDrawUp: function(event) {
         if (this.shapeDrawer != null) {
             this.shapeDrawer.stop(this.drawingContext, this.prevPoint);
 
@@ -83,6 +138,37 @@ var CanvasManager = {
             this.drawingContext.clearRect(0, 0, this.drawingCanvas.width, this.drawingCanvas.height);
             this.redoStack = [];
         }
+    },
+
+    onMouseTextClickBefore: function(event) {
+        console.log('onMouseTextClickBefore');
+        var point = this.mousePos(event);
+        var textInputId = spawnTextInput(point.x + this.mainCanvas.offsetLeft, point.y + this.mainCanvas.offsetTop);
+
+        $('#drawing_canvas').off('click');
+        $('#drawing_canvas').on('click', function(e) {CanvasManager.onMouseTextClickAfter(e);});
+    },
+
+    onMouseTextClickAfter: function() {
+        console.log('onMouseTextClickAfter');
+        $('#drawing_canvas').off('click');
+
+        $.each($('.textinput'), function (index, input) {
+            var context = CanvasManager.mainContext;
+            var rect = input.getBoundingClientRect();
+
+            context.save();
+            var style = window.getComputedStyle(input);
+            console.log(parseInt(style.getPropertyValue('font-size').slice(0, -2)));
+            context.font = 'bold ' + style.getPropertyValue('font-size') + ' Arial';
+
+            context.fillText(input.value, rect.left - CanvasManager.mainCanvas.offsetLeft, rect.bottom - CanvasManager.mainCanvas.offsetTop);
+            context.restore();
+        });
+
+        $('.textinput').remove();
+
+        $('#drawing_canvas').on('click', function(e) {CanvasManager.onMouseTextClickBefore(e);});
     },
 
     historyStack: [],
@@ -206,6 +292,37 @@ LineDrawer.prototype.draw = function(ctx, x1, y1, x2, y2) {
     }
 };
 
+function ArrowDrawer() {
+    AbstractDrawer.call(this);
+}
+
+ArrowDrawer.prototype = Object.create(AbstractDrawer.prototype);
+
+ArrowDrawer.prototype.draw = function(ctx, x1, y1, x2, y2) {
+    if (this.isDrawing) {
+        var LENGTH_PATH = 10;
+        var angle = Math.atan2(y2 - this.startPoint.y, x2 - this.startPoint.x);
+        var length = Math.sqrt(Math.pow(x2 - this.startPoint.x, 2) + Math.pow(y2 - this.startPoint.y, 2)) / LENGTH_PATH;
+
+        ctx.save();
+        ctx.lineCap = 'round'
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+
+        ctx.moveTo(this.startPoint.x, this.startPoint.y);
+        ctx.lineTo(x2, y2);
+
+        ctx.lineTo(x2 - length * Math.cos(angle - Math.PI / 6), y2 - length*Math.sin(angle - Math.PI/6));
+
+        ctx.moveTo(x2, y2);
+        ctx.lineTo(x2 - length * Math.cos(angle + Math.PI / 6), y2 - length*Math.sin(angle + Math.PI/6));
+
+        ctx.stroke();
+
+        ctx.restore();
+    }
+}
+
 function CropDrawer() {
     AbstractDrawer.call(this);
 }
@@ -272,18 +389,25 @@ window.onload = function() {
     function getDrawer(id) {
         switch (id) {
             case 'rectangle': return new RectangleDrawer();
-            case 'ellipse': return new CircleDrawer();
-            case 'line': return new LineDrawer();
-            case 'draw': return new SimpleDrawer();
-            case 'crop': return new CropDrawer();
-            default: return new RectangleDrawer();
+            case 'ellipse'  : return new CircleDrawer();
+            case 'line'     : return new LineDrawer();
+            case 'arrow'    : return new ArrowDrawer;
+            case 'draw'     : return new SimpleDrawer();
+            case 'crop'     : return new CropDrawer();
+            default         : return new RectangleDrawer();
         }
         return null;
     }
 
     $('.draw_method').click(function() {
         console.log(this.id);
+        CanvasManager.setDrawingHandlers();
         CanvasManager.shapeDrawer = getDrawer(this.id);
+    });
+
+    $('.text_method').click(function() {
+       console.log(this.id);
+        CanvasManager.setTextInputHandlers();
     });
 
     $('#undo').click(function() {
