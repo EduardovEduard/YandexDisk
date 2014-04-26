@@ -98,4 +98,5 @@ ol, ul, li {
     width: auto;
     position: absolute;
     visibility: hidden;
+    font: bold 14px/18px Arial, Helvetica, sans-serif;
 }

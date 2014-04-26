@@ -19,6 +19,7 @@ function spawnTextInput(x, y) {
 
     input.focus();
     input.on('keyup',function(event) {
+        console.log('keyup');
         switch (event.keyCode) {
             case 8 : //fallthrough
             case 46: break;
@@ -28,15 +29,15 @@ function spawnTextInput(x, y) {
     });
 
     input.on('input', function() {
-        var lastChar = $(this).val().slice(-1);
+        var value = $(this).val();
 
-        $('#string_width_div').html(lastChar);
-        var charWidth = $('#string_width_div').width();
-        console.log(CanvasManager.mainCanvas.width + ' ' + $(this).width() + ' ' + $(this).position().left + ' ' + charWidth);
+        $('#string_width_div').html(value);
+        var currentWidth = $('#string_width_div').width();
+        console.log(CanvasManager.mainCanvas.width + ' ' + $(this).width() + ' ' + $(this).position().left + ' ' + currentWidth);
 
-        if ($(this).position().left + $(this).width() + charWidth < CanvasManager.mainCanvas.width)
+        if ($(this).position().left + currentWidth < CanvasManager.mainCanvas.width)
         {
-            $(this).width($(this).width() + charWidth);
+            $(this).width(currentWidth);
         }
         else
         {
