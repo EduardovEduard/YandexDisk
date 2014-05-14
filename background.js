@@ -59,7 +59,7 @@ function takeScreenshot() {
 
     chrome.tabs.getSelected(null, function(tab) {
         var title = tab.title;
-        chrome.tabs.captureVisibleTab(null, function(image) {
+        chrome.tabs.captureVisibleTab(null, {'format' : 'png'}, function(image) {
             var screenshotUrl = image;
             var viewTabUrl = chrome.extension.getURL('screenshot.html?id=' + tabId++);
 

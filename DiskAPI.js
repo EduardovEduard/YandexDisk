@@ -9,9 +9,7 @@ XMLHttpRequest.prototype.sendAsBinary = function(datastr) {
 
 function filter(path)
 {
-    path = path.replace(/https?:\/\//g, '');
-    path = path.replace(/\./g, '_');
-    path = path.replace(/\//g, '_');
+    path = path.replace(/https?:\/\//g, '').replace(/\./g, '_').replace(/,/,'').replace(/\//g, '_').replace(/\s/g,'_');
     return path;
 }
 
@@ -65,7 +63,10 @@ var DiskApi = {
         var request = new XMLHttpRequest();
 
         var slash = (localStorage.directory.slice(-1) == '/') ? '' : '/';
-        request.open('PUT', this.host + localStorage.directory + slash + path + slash + dateString);
+        var requestString = this.host + localStorage.directory + slash + path + ":" + dateString;
+
+        console.log("Request: " + requestString);
+        request.open('PUT', requestString);
 
         request.setRequestHeader('Accept', '*/*');
         request.setRequestHeader('Authorization', 'OAuth ' + this.token);
