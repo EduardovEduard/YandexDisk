@@ -2,12 +2,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
     <head>
         <title>Screenshot</title>
-	    <script src="screenshot.js"></script>
-	    <script src="DiskAPI.js"></script>
-	    <script src="lib/CryptoJS/rollups/sha256.js"></script>
-        <script src="lib/CryptoJS/rollups/md5.js"></script>
-        <script src="lib/jquery-1.11.0.js"></script>
-        <script src="edit.js"></script>
+	    <script type="text/javascript" src="screenshot.js"></script>
+	    <script type="text/javascript" src="DiskAPI.js"></script>
+	    <script type="text/javascript" src="lib/CryptoJS/rollups/sha256.js"></script>
+        <script type="text/javascript" src="lib/CryptoJS/rollups/md5.js"></script>
+        <script type="text/javascript" src="lib/jquery-1.11.0.js"></script>
+        <script type="text/javascript" src="edit.js"></script>
+        <script type="text/javascript" src="saveToFile.js"></script>
         <link rel="stylesheet" href="css/style.css" />
     </head>
     <body>
@@ -45,6 +46,7 @@
                 <canvas id = "screenshot_canvas"></canvas>
             </div>
             <input id="submit" type="button" style="position: relative" value="Send to my YandexDisk!">
+            <input id="save_button" type="button" style="position: relative" value="Save locally!">
         </div>
         <div id="string_width_div">
         </div>

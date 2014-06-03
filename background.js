@@ -30,6 +30,7 @@ window.onload = function () {
 
     var onClicked = function() {
         if (!localStorage.accessToken || parseInt(localStorage.expires) < new Date().getTime()) {
+            console.log("No access token!");
 
             chrome.tabs.onUpdated.addListener(getToken);
             chrome.tabs.create({}, function(tab) {
