@@ -21,6 +21,7 @@ function getToken() {
 
                 chrome.tabs.remove(tab.id);
                 chrome.tabs.onUpdated.removeListener(getToken);
+                takeScreenshot();
             }
         }
     });
