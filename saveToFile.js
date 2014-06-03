@@ -1,11 +1,10 @@
-var FILENAME = "YandexDiskScreenshot.png";
 
 $(document).ready(function() {
    $('#save_button').click(function() {
        var content = $('#screenshot_canvas')[0].toDataURL();
        content = base64ToBinary(content);
        var blob = new Blob([content]);
-       saveToDisk(blob, FILENAME);
+       saveToDisk(blob, localStorage.title + '.png');
    });
 });
 

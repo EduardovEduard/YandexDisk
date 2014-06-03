@@ -1,12 +1,11 @@
-function submitToDisk(api, title) {
+function submitToDisk(api) {
     console.log('submit');
     var canvas = document.getElementById('screenshot_canvas');
     var image = canvas.toDataURL();
-    console.log(title);
-    api.put(title, image);
+    api.put(image);
 }
 
-function setScreenshotUrl(imageUrl, title, api) {
+function setScreenshotUrl(imageUrl, api) {
     console.log("setScreenshotUrl: " + imageUrl);
     var image = new Image();
     var canvas = document.getElementById('screenshot_canvas');
@@ -26,6 +25,6 @@ function setScreenshotUrl(imageUrl, title, api) {
     image.src = imageUrl;
 
     document.getElementById('submit').onclick = function () {
-        submitToDisk(api, title);
+        submitToDisk(api);
     };
 }

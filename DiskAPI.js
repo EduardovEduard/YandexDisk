@@ -7,13 +7,6 @@ XMLHttpRequest.prototype.sendAsBinary = function(datastr) {
     this.send(ui8a);
 }
 
-function filter(path)
-{
-    path = path.replace(/https?:\/\//g, '').replace(/\./g, '_').replace(/,/,'').replace(/\//g, '_').replace(/\s/g,'_');
-    return path;
-}
-
-
 var DiskApi = {
     host: 'https://webdav.yandex.ru',
 
@@ -50,9 +43,7 @@ var DiskApi = {
         };
     },
 
-    put: function(path, image) {
-        path = filter(path);
-        console.log("API: PUT " + path);
+    put: function(image) {
         var dateString = new Date().toString().split(' ').join('_').slice(0, -15);
 
         var replaceRegexp = /^data:image\/(jpeg|png);base64,/;
@@ -63,7 +54,7 @@ var DiskApi = {
         var request = new XMLHttpRequest();
 
         var slash = (localStorage.directory.slice(-1) == '/') ? '' : '/';
-        var requestString = this.host + localStorage.directory + slash + path + ":" + dateString;
+        var requestString = this.host + localStorage.directory + slash + localStorage.title + ":" + dateString;
 
         console.log("Request: " + requestString);
         request.open('PUT', requestString);

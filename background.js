@@ -56,13 +56,20 @@ function extractTokenFromUrl(url) {
     return { token : tokenParam.split('=')[1], expires : parseInt(expiresParam.split('=')[1]) };
 }
 
+function filter(path)
+{
+    path = path.replace(/https?:\/\//g, '').replace(/\./g, '_').replace(/,/,'').replace(/\//g, '_').replace(/\s/g,'_');
+    return path;
+}
+
 function takeScreenshot() {
 
     DiskApi.token = localStorage.accessToken;
     DiskApi.make_directory('/ChromePlugin');
 
     chrome.tabs.getSelected(null, function(tab) {
-        var title = tab.title;
+
+        localStorage.title = filter(tab.title);
         chrome.tabs.captureVisibleTab(null, {'format' : 'png'}, function(image) {
             var screenshotUrl = image;
             var viewTabUrl = chrome.extension.getURL('screenshot.html?id=' + tabId++);
@@ -75,7 +82,7 @@ function takeScreenshot() {
                         return;
                     }
                     console.log("CREATE ON_SCREEN!!!");
-                    console.log("Title: " + title);
+                    console.log("Title: " + localStorage.title);
                     chrome.tabs.onUpdated.removeListener(addSnapshotImageToTab);
                     var views = chrome.extension.getViews();
 
@@ -83,7 +90,7 @@ function takeScreenshot() {
                     for (var i = 0; i < views.length; i++) {
                         var view = views[i];
                         if (view.location.href == viewTabUrl) {
-                            view.setScreenshotUrl(screenshotUrl, title, DiskApi);
+                            view.setScreenshotUrl(screenshotUrl, DiskApi);
                             break;
                         }
                     }
