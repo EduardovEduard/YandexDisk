@@ -7,6 +7,12 @@ XMLHttpRequest.prototype.sendAsBinary = function(datastr) {
     this.send(ui8a);
 }
 
+var PUBLISH_STRING = '<propertyupdate xmlns="DAV:">' +
+    '<set>' +
+    '<prop>' +
+    '<public_url xmlns="urn:yandex:disk:meta">true</public_url>' +
+    '</prop></set></propertyupdate>';
+
 var DiskApi = {
     host: 'https://webdav.yandex.ru',
 
@@ -55,6 +61,7 @@ var DiskApi = {
 
         var slash = (localStorage.directory.slice(-1) == '/') ? '' : '/';
         var requestString = this.host + localStorage.directory + slash + localStorage.title + ":" + dateString;
+        localStorage.lastSavedFile = localStorage.title + ":" + dateString;
 
         console.log("Request: " + requestString);
         request.open('PUT', requestString);
@@ -71,6 +78,7 @@ var DiskApi = {
         request.onload = function() {
             console.log("Put finished!");
             console.log(this.responseText);
+            DiskApi.publish(requestString, null);
         }
 
         request.sendAsBinary(imageSource);
@@ -97,5 +105,25 @@ var DiskApi = {
         }
 
         request.send(null);
+    },
+
+    publish: function(path, callback) {
+        var request = new XMLHttpRequest();
+
+        request.open('PROPPATCH', path);
+        request.setRequestHeader('Authorization', 'OAuth ' + this.token);
+
+        request.onload = function() {
+            console.log('Proppatch status: ' + this.status);
+            console.log('Proppatch response: ' + this.responseText);
+            var xml = $.parseXML(this.responseText);
+
+            $xml = $(xml), $url = $xml.find('public_url');
+            chrome.tabs.sendMessage(parseInt(localStorage.screenshotTabId), {publicUrl : $url.text()}, function(response) {
+               console.log(response.farewell);
+            });
+        };
+
+        request.send(PUBLISH_STRING);
     }
 }

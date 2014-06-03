@@ -76,13 +76,13 @@ function takeScreenshot() {
 
             chrome.tabs.create({url : viewTabUrl}, function(tab) {
                 var targetId = tab.id;
+                localStorage.screenshotTabId = tab.id;
 
                 var addSnapshotImageToTab = function(tabId, changedProps) {
                     if (tabId != targetId || changedProps.status != 'complete') {
                         return;
                     }
-                    console.log("CREATE ON_SCREEN!!!");
-                    console.log("Title: " + localStorage.title);
+
                     chrome.tabs.onUpdated.removeListener(addSnapshotImageToTab);
                     var views = chrome.extension.getViews();
 

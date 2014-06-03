@@ -1,3 +1,14 @@
+
+$(document).ready(function() {
+    chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+        console.log(sender.tab ? "from a content script:" + sender.tab.url : "from the extension");
+        if (request.publicUrl) {
+            $('#public_url').val(request.publicUrl);
+            sendResponse({farewell: 'goodbye'});
+        }
+    });
+});
+
 function submitToDisk(api) {
     console.log('submit');
     var canvas = document.getElementById('screenshot_canvas');
