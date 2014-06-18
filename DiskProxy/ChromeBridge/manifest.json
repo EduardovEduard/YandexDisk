@@ -1,0 +1,9 @@
+{
+    "name": "ru.yandexdisk.host",
+    "description": "Yandex Disk helper",
+    "path": "ru.yandexdisk.host.exe",
+    "type": "stdio",
+    "allowed_origins": [
+    "chrome-extension://ejdnpligipchoffphofhfebmnmhdbkep/"
+    ]
+}
